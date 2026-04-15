@@ -46,6 +46,14 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorMiddleware);
 
+// Catch-all for unhandled errors
+app.use((err, req, res, next) => {
+  logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
+  if (!res.headersSent) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
 // Connect to database and start server
 if (process.env.NODE_ENV !== "production") {
   const startServer = async () => {
