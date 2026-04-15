@@ -33,27 +33,41 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
+
 // Error handling middleware (must be last)
 app.use(errorMiddleware);
 
 // Connect to database and start server
-const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
+if (process.env.NODE_ENV !== "production") {
+  const startServer = async () => {
+    try {
+      // Connect to MongoDB
+      await connectDB();
 
-    const server = app.listen(PORT, () => {
-      logger.info(`Server started on port ${PORT}`);
-    });
+      const server = app.listen(PORT, () => {
+        logger.info(`Server started on port ${PORT}`);
+      });
 
-    // Handle unhandled rejection
-    server.on("error", (error) => {
-      logger.error(`Server error: ${error.message}`);
-    });
-  } catch (error) {
-    logger.error(`Failed to start server: ${error.message}`);
-  }
-};
+      // Handle server errors
+      server.on("error", (error) => {
+        logger.error(`Server error: ${error.message}`);
+      });
+    } catch (error) {
+      logger.error(`Failed to start server: ${error.message}`);
+    }
+  };
+
+  startServer();
+} else {
+  // For Vercel/production, just connect to DB
+  connectDB().catch((error) => {
+    logger.error(`Failed to connect to database: ${error.message}`);
+  });
+}
 
 // Handle unhandled rejections and exceptions
 process.on("unhandledRejection", (reason, promise) => {
@@ -64,7 +78,5 @@ process.on("uncaughtException", (error) => {
   logger.error(`Uncaught Exception: ${error.message}`);
 });
 
-startServer();
-
-// Export app for serverless environments
+// Export app for Vercel serverless
 export default app;
