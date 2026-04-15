@@ -14,6 +14,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Async error wrapper
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -22,16 +27,16 @@ app.use(rateLimit);
 app.use(loggerMiddleware);
 
 // Routes
-app.get("/", (req, res) => {
+app.get("/", asyncHandler(async (req, res) => {
   res.json({ message: "Welcome to the API", version: "1.0.0" });
-});
+}));
 
 app.use("/api/auth", authRoutes);
 
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get("/health", asyncHandler(async (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
-});
+}));
 
 // 404 handler
 app.use((req, res) => {

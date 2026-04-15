@@ -3,7 +3,12 @@ import { register, login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
+// Async error wrapper
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+router.post("/register", asyncHandler(register));
+router.post("/login", asyncHandler(login));
 
 export default router;

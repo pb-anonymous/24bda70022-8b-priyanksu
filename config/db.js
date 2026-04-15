@@ -3,7 +3,10 @@ import logger from "./logger.js";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/auth-app", {
+      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000,
+    });
     logger.info("MongoDB Connection Successful");
   } catch (error) {
     logger.warn(`Database connection failed: ${error.message}`);
