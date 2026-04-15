@@ -42,13 +42,29 @@ const startServer = async () => {
     // Connect to MongoDB
     await connectDB();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);
+    });
+
+    // Handle unhandled rejection
+    server.on("error", (error) => {
+      logger.error(`Server error: ${error.message}`);
     });
   } catch (error) {
     logger.error(`Failed to start server: ${error.message}`);
-    process.exit(1);
   }
 };
 
+// Handle unhandled rejections and exceptions
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+});
+
+process.on("uncaughtException", (error) => {
+  logger.error(`Uncaught Exception: ${error.message}`);
+});
+
 startServer();
+
+// Export app for serverless environments
+export default app;
